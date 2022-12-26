@@ -1,0 +1,108 @@
+version: '3'
+services:
+  eureka-service:
+    build: ./discovery-service/
+    hostname: discovery-service
+    ports:
+      - "8761:8761"
+    networks:
+      - default-network
+
+  customer-commands-service:
+    build: ./customer-commands-service/
+    hostname: customer-commands-service
+    ports:
+      - "8881:8881"
+    depends_on:
+      - eureka-service
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761
+    networks:
+      - default-network
+
+  customer-query-service:
+    build: ./customer-query-service/
+    hostname: customer-query-service
+    ports:
+      - "8882:8882"
+    restart: on-failure
+    depends_on:
+      - eureka-service
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761
+    networks:
+      - default-network
+
+  inventory-command-service:
+    build: ./inventory-command-service/
+    hostname: inventory-command-service
+    ports:
+      - "8090:8090"
+    restart: on-failure
+    depends_on:
+      - eureka-service
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761
+    networks:
+      - default-network
+
+  inventory-query-service:
+    build: ./inventory-query-service/
+    hostname: inventory-query-service
+    ports:
+      - "8091:8091"
+    restart: on-failure
+    depends_on:
+      - eureka-service
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761
+    networks:
+      - default-network
+
+  order-command-service:
+    build: ./order-command-service/
+    hostname: order-command-service
+    ports:
+      - "8181:8181"
+    restart: on-failure
+    depends_on:
+      - eureka-service
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761
+    networks:
+      - default-network
+
+  order-query-service:
+    build: ./order-query-service/
+    hostname: order-query-service
+    ports:
+      - "8883:8883"
+    restart: on-failure
+    depends_on:
+      - eureka-service
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761
+    networks:
+      - default-network
+
+  gateway-service:
+    build: ./gateway-service/
+    hostname: gateway-service
+    ports:
+      - "9999:9999"
+    depends_on:
+      - eureka-service
+      - customer-query-service
+      - customer-command-service
+      - inventory-command-service
+      - inventory-query-service
+      - order-command-service
+      - order-query-service
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761/eureka
+    networks:
+      - default-network
+
+networks:
+  default-network:
+    driver: bridge
